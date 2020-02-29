@@ -1,0 +1,933 @@
+<app-header></app-header>
+<div id="container" class="no-print" style="margin-top: 85px;">
+    <div class="container-fluid">
+        <div>
+            <h3>
+                <label class="text-info no-print">
+                    <span>{{houseNumber}} ఇంటి పన్ను వివరాలు</span>
+                </label>
+            </h3>
+        </div>
+        <div style="margin-top:20px;">
+            <div class="row no-print">
+                <div class="form-group 	col-md-3">
+                    <button type="submit" name="addTax" class="btn btn-primary btn-block" data-toggle="modal" data-target="#addTaxModal" value="Add Tax"
+                        (click)="generateTax()">పన్ను జోడించండి</button>
+                </div>
+                <div class="form-group 	col-md-3">
+                    <button type="submit" class="btn btn-primary btn-block" (click)="openTransactionPage()">లావాదేవీలు</button>
+                </div>
+            </div>
+            <div class="font-weight-bold">
+                <div *ngIf="successClass" [ngClass]="(successClass == true)?'text-success':'text-danger'">
+                    {{addTaxResponse}}
+                </div>
+            </div>
+            <div>
+                <table class="table table-responsive table-striped no-print">
+                    <thead>
+                        <tr class="smallfont">
+                            <!--style=" font-size: 20px;"-->
+                            <th>ఇంటి పన్ను</th>
+                            <th>గ్రంథాలయపు పన్నూ</th>
+                            <th>లైటు పన్నూ</th>
+                            <th>డ్రైనేజీ పన్నూ</th>
+                            <th>నీటి పన్ను</th>
+                            <th>కుళాయి నెలవారీ ఫీజు</th>
+                            <th>కుళాయి డిపాజిట్</th>
+                            <th>లైసెన్స్ ఫీజు</th>
+                            <th>గ్రుహ నిర్మాణం ఫీజు</th>
+                            <th>దాఖాల ఫీజు</th>
+                            <th>బందెల దొడ్డి</th>
+                            <th>భవనముల అద్దెలు</th>
+                            <th>ఇతరములు</th>
+                            <th>మొత్తం పన్ను</th>
+                            <th>పన్ను సంవత్సరం</th>
+                            <th>పన్ను స్థితి</th>
+                            <th>చర్య</th>
+                            <th>మార్చు</th>
+                        </tr>
+                    </thead>
+                    <tbody *ngFor="let tax of taxList">
+                        <tr *ngIf="tax">
+                            <td class="align-middle" hidden>{{tax.taxId}}</td>
+                            <td class="align-middle">{{tax.houseTax}}</td>
+                            <td class="align-middle">{{tax.libraryTax}}</td>
+                            <td class="align-middle">{{tax.lightTax}}</td>
+                            <td class="align-middle">{{tax.drainageTax}}</td>
+                            <td class="align-middle">{{tax.waterTax}}</td>
+                            <td class="align-middle">{{tax.kulaiNelaVariFee}}</td>
+                            <td class="align-middle">{{tax.kulaiDeposit}}</td>
+                            <td class="align-middle">{{tax.licenseFee}}</td>
+                            <td class="align-middle">{{tax.houseConstructionFee}}</td>
+                            <td class="align-middle">{{tax.dakhalaFee}}</td>
+                            <td class="align-middle">{{tax.bandhelaDoddi}}</td>
+                            <td class="align-middle">{{tax.buildingRents}}</td>
+                            <td class="align-middle" hidden>{{tax.othersKey}}</td>
+                            <td class="align-middle">{{tax.otherValue}}</td>
+                            <td class="align-middle">{{tax.totalTax}}</td>
+                            <td class="align-middle">{{tax.taxYear}}</td>
+                            <td class="align-middle">{{tax.taxStatus}}</td>
+                            <td *ngIf="tax.taxStatus != 'SUCCESS';  else paymentMsg">
+                                <Button type="submit" name="taxPayment" class="btn btn-primary" (click)="openModel(tax)" value="{{tax.taxId}}">Pay</Button>
+                            </td>
+                            <td *ngIf="tax.taxStatus != 'SUCCESS'; else editMsg">
+                                <button type="submit" name="editTax" class="btn btn-primary btn-block" data-toggle="modal" (click)="editTax(tax)" data-target="#addTaxModal">Edit</button>
+                            </td>
+                            <ng-template #editMsg>
+                                <td class="text-info">వర్తించదు</td>
+                            </ng-template>
+                            <ng-template #paymentMsg>
+                                <td class="text-success">Payment Success</td>
+                            </ng-template>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="response">
+                <div class="form-group">
+                    <label for="response" id="addResp" class="text-success"></label>
+                    <label for="response" id="failedResp" class="text-danger"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--  Cancel Confirmation Modal -->
+
+<div class="modal fade" id="confirmTaxCancel" tabindex="-1" role="dialog" aria-labelledby="addTaxModalTitle" aria-hidden="true">
+    <div class="modal-content">
+        <form class="form-horizontal" id="addTaxForm" [formGroup]="addTaxForm" (ngSubmit)="processCancelTax(cancelTaxId)" novalidate>
+            <div class="modal-footer no-print">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <span class="notranslate">No</span>
+                </button>
+                <button type=submit id="addTaxService" class="btn btn-primary notranslate">Yes</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!--  Cancel Confirmation Modal End -->
+
+
+
+<!-- Add Tax Model First time-->
+<div class="modal fade" id="addTaxModal" tabindex="-1" role="dialog" aria-labelledby="addTaxModalTitle" aria-hidden="true">
+
+    <div *ngIf="isTaxAvailable == false" class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header no-print" align="center">
+                <h4 class="modal-title no-print" id="addTaxModalTitle">పన్ను జోడించండి</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form class="form-horizontal" id="addTaxForm" [formGroup]="addTaxForm" (ngSubmit)="editTaxVal ? editTaxUpdate() : addTax()" novalidate>
+                <div class="modal-body">
+                    <div class=" form-group">
+                        <input hidden type="text" class="form-control" formControlName="taxId"  [ngModel]="editTaxVal ? (editTaxVal.taxId == null ? '': editTaxVal.taxId) : ''" />
+                        <input hidden type="text" class="form-control" formControlName="houseNumber"  [ngModel]="editTaxVal ? (editTaxVal.houseNumber == null ? '': editTaxVal.houseNumber) : ''" />                       
+                        <label for="houseTax">ఇంటి పన్ను</label>
+                        <input type="text" name="houseTax" class="form-control" [ngClass]="{ 'is-invalid': (isAddSubmitted && addTaxForm.get('houseTax').hasError('required')) }"
+                            formControlName="houseTax" onkeypress="return event.charCode>= 48 && event.charCode <=57" [ngModel]="editTaxVal ? (editTaxVal.houseTax == null ? 0: editTaxVal.houseTax) : 0"
+                        />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('houseTax').hasError('required')" class="invalid-feedback">
+                            <div>దయచేసి చెల్లుబాటు అయ్యే ఇంటి పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputVillageTax">గ్రంథాలయపు పన్నూ</label>
+                        <input type="text" class="form-control" formControlName="libraryTax" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('libraryTax').hasError('required') }"
+                            required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57" id="libraryTax"
+                            name="libraryTax" [ngModel]="editTaxVal ? (editTaxVal.libraryTax == null ? 0: editTaxVal.libraryTax) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('libraryTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('libraryTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే గ్రంథాలయపు పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputWaterTax">లైటు పన్నూ</label>
+                        <input type="text" class="form-control" id="lightTax" name="lightTax" formControlName="lightTax" required="required" minlength="1"
+                            [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('lightTax').hasError('required') }" maxlength="10"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" [ngModel]="editTaxVal ? (editTaxVal.lightTax == null ? 0: editTaxVal.lightTax) : 0" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('lightTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('lightTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే లైటు పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lightingTax">డ్రైనేజీ పన్నూ</label>
+                        <input type="text" class="form-control" id="drainageTax" name="drainageTax" formControlName="drainageTax" required="required"
+                            [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('drainageTax').hasError('required') }"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10" [ngModel]="editTaxVal ? (editTaxVal.drainageTax == null ? 0: editTaxVal.drainageTax) : 0" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('drainageTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('drainageTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే డ్రైనేజీ పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">నీటి పన్ను</label>
+                        <input type="text" class="form-control" formControlName="waterTax" name="waterTax" required="required" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('waterTax').hasError('required') }"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10"  [ngModel]="editTaxVal ? (editTaxVal.waterTax == null ? 0: editTaxVal.waterTax) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('waterTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('waterTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే నీటి పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">కుళాయి నెలవారీ ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="kulaiNelaVariFee" name="kulaiNelaVariFee" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('kulaiNelaVariFee').hasError('required') }" [ngModel]="editTaxVal ? (editTaxVal.kulaiNelaVariFee == null ? 0: editTaxVal.kulaiNelaVariFee) : 0"
+                        />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('kulaiNelaVariFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('kulaiNelaVariFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే కుళాయి నెలవారీ ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">కుళాయి డిపాజిట్</label>
+                        <input type="text" class="form-control" formControlName="kulaiDeposit" name="kulaiDeposit" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('kulaiDeposit').hasError('required') }" [ngModel]="editTaxVal ? (editTaxVal.kulaiDeposit == null ? 0: editTaxVal.kulaiDeposit) : 0"
+                        />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('kulaiDeposit').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('kulaiDeposit').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే కుళాయి డిపాజిట్ నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">లైసెన్స్ ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="licenseFee" name="licenseFee" required="required" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('licenseFee').hasError('required') }"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10" [ngModel]="editTaxVal ? (editTaxVal.licenseFee == null ? 0: editTaxVal.licenseFee) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('licenseFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('licenseFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే లైసెన్స్ ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">గ్రుహ నిర్మాణం ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="houseConstructionFee" name="houseConstructionFee" required="required"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('houseConstructionFee').hasError('required') }"
+                            [ngModel]="editTaxVal ? (editTaxVal.houseConstructionFee == null ? 0: editTaxVal.houseConstructionFee) : 0"
+                        />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('houseConstructionFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('houseConstructionFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే గ్రుహ నిర్మాణం ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">దాఖాల ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="dakhalaFee" name="dakhalaFee" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('dakhalaFee').hasError('required') }"
+                            [ngModel]="editTaxVal ? (editTaxVal.dakhalaFee == null ? 0: editTaxVal.dakhalaFee) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('dakhalaFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('dakhalaFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే దాఖాల ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">బందెల దొడ్డి</label>
+                        <input type="text" class="form-control" formControlName="bandhelaDoddi" name="bandhelaDoddi" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('bandhelaDoddi').hasError('required') }"
+                            [ngModel]="editTaxVal ? (editTaxVal.bandhelaDoddi == null ? 0: editTaxVal.bandhelaDoddi) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('bandhelaDoddi').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('bandhelaDoddi').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే బందెల దొడ్డి నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">భవనముల అద్దెలు</label>
+                        <input type="text" class="form-control" formControlName="buildingRents" name="buildingRents" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('buildingRents').hasError('required') }"
+                            [ngModel]="editTaxVal ? (editTaxVal.buildingRents == null ? 0: editTaxVal.buildingRents) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('buildingRents').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('buildingRents').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే భవనముల అద్దెలు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">ఇతరములు</label>
+                        <select class="form-control" formControlName="othersKey"  [ngModel]="editTaxVal ? (editTaxVal.othersKey == null ? defaultSelect: editTaxVal.othersKey) : defaultSelect"  name="othersKey" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('othersKey').hasError('required') }">
+                            <option *ngFor="let otherKey of otherKeys | keyvalue " value="{{otherKey.key}}">{{otherKey.value}}</option>
+                        </select>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('othersKey').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('othersKey').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే ఇతరములు నమోదు చేయండి</div>
+                        </div>
+
+                        <label for="cleanlinessTax">ఇతర పన్ను</label>
+                        <input type="text" class="form-control" formControlName="otherValue" name="otherValue" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('otherValue').hasError('required') }"
+                            [ngModel]="editTaxVal ? (editTaxVal.otherValue == null ? 0: editTaxVal.otherValue) : 0"/>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('otherValue').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('otherValue').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే ఇతర పన్ను నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group date">
+                        <label for="inputcleanlinessTax">పన్ను సంవత్సరం
+                            <span class="notranslate">(YYYY)</span>
+                        </label>
+                        <input type="text" class="form-control" onkeypress="return event.charCode>= 48 && event.charCode<=57" formControlName="taxYear"
+                            name="taxYear" required="required" pattern="[2]{1}[0]{1}[1-2]{1}[0-9]{1}" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('taxYear').hasError('required') }"
+                            [ngModel]="editTaxVal ? (editTaxVal.taxYear == null ? 0: editTaxVal.taxYear) : 0" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('taxYear').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('taxYear').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే పన్ను సంవత్సరం నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    
+                    <button type=submit id="addTaxService" class="btn btn-primary notranslate">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- End of Add tax model  First time-->
+
+    <!-- Add Tax Model Generate -->
+
+    <div *ngIf="isTaxAvailable == true" class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header no-print" align="center">
+                <h4 class="modal-title no-print" id="addTaxModalTitle">పన్ను జోడించండి</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form class="form-horizontal" id="addTaxForm" [formGroup]="addTaxForm" (ngSubmit)="addTax()" novalidate>
+                <div *ngFor="let prevTax of prevTaxList" class="modal-body">
+                    <div class=" form-group">
+                        <label for="houseTax">ఇంటి పన్ను</label>
+                        <input type="text" name="houseTax" class="form-control" [ngClass]="{ 'is-invalid': (isAddSubmitted && addTaxForm.get('houseTax').hasError('required')) }"
+                            formControlName="houseTax" onkeypress="return event.charCode>= 48 && event.charCode <=57" [ngModel]="prevTax.houseTax == null ? 0: prevTax.houseTax"
+                        />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('houseTax').hasError('required')" class="invalid-feedback">
+                            <div>దయచేసి చెల్లుబాటు అయ్యే ఇంటి పన్నును నమోదు చేయండి</div>
+                        </div>
+                        <!--<div *ngIf="addTaxForm.get('houseTax').hasError('maxlength')">
+                                
+                        </div>-->
+                    </div>
+                    <div class="form-group">
+                        <label for="inputVillageTax">గ్రంథాలయపు పన్నూ</label>
+                        <input type="text" class="form-control" formControlName="libraryTax" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('libraryTax').hasError('required') }"
+                            required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57" [ngModel]="prevTax.libraryTax == null ? 0: prevTax.libraryTax"
+                            id="libraryTax" name="libraryTax" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('libraryTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('libraryTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే గ్రంథాలయపు పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputWaterTax">లైటు పన్నూ</label>
+                        <input type="text" class="form-control" id="lightTax" name="lightTax" formControlName="lightTax" required="required" minlength="1"
+                            [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('lightTax').hasError('required') }" maxlength="10"
+                            [ngModel]="prevTax.lightTax == null ? 0: prevTax.lightTax" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                        />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('lightTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('lightTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే లైటు పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lightingTax">డ్రైనేజీ పన్నూ</label>
+                        <input type="text" class="form-control" id="drainageTax" name="drainageTax" formControlName="drainageTax" required="required"
+                            [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('drainageTax').hasError('required') }"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" [ngModel]="prevTax.drainageTax == null ? 0: prevTax.drainageTax"
+                            maxlength="10" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('drainageTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('drainageTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే డ్రైనేజీ పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">నీటి పన్ను</label>
+                        <input type="text" class="form-control" formControlName="waterTax" name="waterTax" required="required" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('waterTax').hasError('required') }"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" [ngModel]="prevTax.waterTax == null ? 0: prevTax.waterTax"
+                            maxlength="10" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('waterTax').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('waterTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే నీటి పన్నును నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">కుళాయి నెలవారీ ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="kulaiNelaVariFee" name="kulaiNelaVariFee" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('kulaiNelaVariFee').hasError('required') }"
+                            [ngModel]="prevTax.kulaiNelaVariFee == null ? 0: prevTax.kulaiNelaVariFee" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('kulaiNelaVariFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('kulaiNelaVariFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే కుళాయి నెలవారీ ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">కుళాయి డిపాజిట్</label>
+                        <input type="text" class="form-control" formControlName="kulaiDeposit" name="kulaiDeposit" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('kulaiDeposit').hasError('required') }"
+                            [ngModel]="prevTax.kulaiDeposit == null ? 0: prevTax.kulaiDeposit" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('kulaiDeposit').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('kulaiDeposit').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే కుళాయి డిపాజిట్ నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">లైసెన్స్ ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="licenseFee" name="licenseFee" required="required" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('licenseFee').hasError('required') }"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" [ngModel]="prevTax.licenseFee == null ? 0: prevTax.licenseFee"
+                            maxlength="10" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('licenseFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('licenseFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే లైసెన్స్ ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">గ్రుహ నిర్మాణం ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="houseConstructionFee" name="houseConstructionFee" required="required"
+                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('houseConstructionFee').hasError('required') }"
+                            [ngModel]="prevTax.houseConstructionFee == null ? 0: prevTax.houseConstructionFee" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('houseConstructionFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('houseConstructionFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే గ్రుహ నిర్మాణం ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">దాఖాల ఫీజు</label>
+                        <input type="text" class="form-control" formControlName="dakhalaFee" name="dakhalaFee" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('dakhalaFee').hasError('required') }"
+                            [ngModel]="prevTax.dakhalaFee == null ? 0: prevTax.dakhalaFee" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('dakhalaFee').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('dakhalaFee').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే దాఖాల ఫీజు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cleanlinessTax">బందెల దొడ్డి</label>
+                        <input type="text" class="form-control" formControlName="bandhelaDoddi" name="bandhelaDoddi" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('bandhelaDoddi').hasError('required') }"
+                            [ngModel]="prevTax.bandhelaDoddi == null ? 0: prevTax.bandhelaDoddi" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('bandhelaDoddi').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('bandhelaDoddi').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే బందెల దొడ్డి నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">భవనముల అద్దెలు</label>
+                        <input type="text" class="form-control" formControlName="buildingRents" name="buildingRents" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('buildingRents').hasError('required') }"
+                            [ngModel]="prevTax.buildingRents == null ? 0: prevTax.buildingRents" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('buildingRents').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('buildingRents').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే భవనముల అద్దెలు నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cleanlinessTax">ఇతరములు</label>
+                        <select class="form-control" formControlName="othersKey" name="othersKey" [ngModel]="defaultSelect" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('othersKey').hasError('required') }">
+                            <option *ngFor="let otherKey of otherKeys | keyvalue " [value]="otherKey.key" selected>{{ otherKey.value}}</option>
+                        </select>
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('othersKey').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('othersKey').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే ఇతరములు నమోదు చేయండి</div>
+                        </div>
+
+                        <label for="cleanlinessTax">ఇతర పన్ను</label>
+                        <input type="text" class="form-control" formControlName="otherValue" name="otherValue" required="required" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('otherValue').hasError('required') }"
+                            [ngModel]="prevTax.otherValue == null ? 0: prevTax.otherValue" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('otherValue').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('otherValue').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే ఇతర పన్ను నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                    <div class="form-group date">
+                        <label for="inputcleanlinessTax">పన్ను సంవత్సరం
+                            <span class="notranslate">(YYYY)</span>
+                        </label>
+                        <input type="text" class="form-control" onkeypress="return event.charCode>= 48 && event.charCode<=57" formControlName="taxYear"
+                            name="taxYear" required="required" pattern="[2]{1}[0]{1}[1-2]{1}[0-9]{1}" [ngClass]="{ 'is-invalid': isAddSubmitted && addTaxForm.get('taxYear').hasError('required') }"
+                            [ngModel]="prevTax.taxYear == null ? 0: prevTax.taxYear" />
+                        <div *ngIf="isAddSubmitted && addTaxForm.get('taxYear').hasError('required')" class="invalid-feedback">
+                            <div *ngIf="addTaxForm.get('taxYear').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే పన్ను సంవత్సరం నమోదు చేయండి</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <span class="notranslate">Close</span>
+                    </button>
+                    <button type=submit id="addTaxService" class="btn btn-primary notranslate">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- End of Add tax model Generate-->
+
+</div>
+
+
+
+
+<!-- paymentModel -->
+<div class="modal fade" id="paymentModel" tabindex="-1" role="dialog" aria-labelledby="paymentModel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div *ngIf="taxPayment" class="modal-content">
+            <div class="modal-header no-print" align="center">
+                <h4 class="modal-title no-print" id="paymentModelTitle">పన్ను చెల్లింపు విభాగం</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form class="form-horizontal border needs-validation" [formGroup]="taxPaymentForm" (ngSubmit)="payment()" novalidate>
+                <div class="modal-body table-responsive">
+                    <input type="radio" name="payment" value="Total Payment" (click)="selectPayment('totalPayment')" /> మొత్తం పన్ను చెల్లింపు &nbsp;
+                    <input type="radio" name="payment" value="Total Payment" (click)="selectPayment('partialPayment')" /> పాక్షిక పన్ను చెల్లింపు
+                    <p class="text-danger">{{errorMessage}}</p>
+
+                    <mat-form-field>
+                        <input matInput [matDatepicker]="picker" [max]="today" [ngModel]="today" formControlName="transactionDate" class="form-control"
+                            [ngClass]="{'is-invalid': isPaySubmitted && taxPaymentForm.get('transactionDate').hasError('required')}">
+                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker class="mat-input-underline"></mat-datepicker>
+                    </mat-form-field>
+
+
+                    <div *ngIf="partialPayment || totalPayment" class="table-responsive">
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>s.no</th>
+                                    <th>పన్ను</th>
+                                    <th *ngIf="partialPayment">చెల్లించే మొత్తం</th>
+                                    <th>ప్రస్తుత పన్ను</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>ఇంటి పన్ను</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" [ngClass]="{'is-invalid': isPaySubmitted && taxPaymentForm.get('houseTax').hasError('required')}"
+                                            formControlName="houseTax" onkeypress="return event.charCode>= 48 && event.charCode<=57"
+                                            #houseTax (change)="updateTotalTax()" ng-model="hTax" />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('houseTax').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('houseTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే ఇంటి పన్నును నమోదు చేయండి</div>
+                                        </div>
+                                        <div *ngIf="isPaySubmitted && houseTaxError" class="invalid-feedback">
+                                            దయచేసి
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="houseTax" id="houseTax" class="form-control" value="{{taxPayment.houseTax}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>గ్రంథాలయపు పన్నూ</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="libraryTax" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('libraryTax').hasError('required') }"
+                                            #libraryTax (change)="updateTotalTax()" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                                            id="libraryTax" name="libraryTax" />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('libraryTax').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('libraryTax').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే గ్రంథాలయపు పన్నును నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="libraryTax" class="form-control" value="{{taxPayment.libraryTax}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>లైటు పన్నూ</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" id="lightTax" name="lightTax" formControlName="lightTax" minlength="1" #lightTax
+                                            (change)="updateTotalTax()" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('lightTax').hasError('required') }"
+                                            maxlength="10" onkeypress="return event.charCode>= 48 && event.charCode <=57" />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('lightTax').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('lightTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే లైటు పన్నును నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="lightTax" class="form-control" value="{{taxPayment.lightTax}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>డ్రైనేజీ పన్నూ</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" id="drainageTax" name="drainageTax" formControlName="drainageTax" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('drainageTax').hasError('required')}"
+                                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10"
+                                            #drainageTax (change)="updateTotalTax()" />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('drainageTax').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('drainageTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే డ్రైనేజీ పన్నును నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="drainageTax" class="form-control" value="{{taxPayment.drainageTax}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>నీటి పన్ను</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="waterTax" name="waterTax" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('waterTax').hasError('required') }"
+                                            #waterTax (change)="updateTotalTax()" onkeypress="return event.charCode>= 48 && event.charCode<=57"
+                                            minlength="1" maxlength="10" />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('waterTax').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('waterTax').hasError('required')">దయచేసి చెల్లుబాటు అయ్యే నీటి పన్నును నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="waterTax" class="form-control" value="{{taxPayment.waterTax}}" disabled />
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>కుళాయి నెలవారీ ఫీజు</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="kulaiNelaVariFee" name="kulaiNelaVariFee" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                                            #kulaiNelaVariFee (change)="updateTotalTax()" minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('kulaiNelaVariFee').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('kulaiNelaVariFee').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('kulaiNelaVariFee').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే కుళాయి నెలవారీ ఫీజు నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="kulaiNelaVariFee" class="form-control" value="{{taxPayment.kulaiNelaVariFee}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>కుళాయి డిపాజిట్</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="kulaiDeposit" name="kulaiDeposit" #kulaiDeposit (change)="updateTotalTax()"
+                                            onkeypress="return event.charCode>= 48 && event.charCode<=57" minlength="1" maxlength="10"
+                                            [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('kulaiDeposit').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('kulaiDeposit').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('kulaiDeposit').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే కుళాయి డిపాజిట్ నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="kulaiDeposit" class="form-control" value="{{taxPayment.kulaiDeposit}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>లైసెన్స్ ఫీజు</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="licenseFee" name="licenseFee" #licenseFee (change)="updateTotalTax()"
+                                            [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('licenseFee').hasError('required') }"
+                                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('licenseFee').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('licenseFee').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే లైసెన్స్ ఫీజు నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="licenseFee" class="form-control" value="{{taxPayment.licenseFee}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>9</td>
+                                    <td>గ్రుహ నిర్మాణం ఫీజు</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="houseConstructionFee" name="houseConstructionFee" #houseConstructionFee
+                                            (change)="updateTotalTax()" onkeypress="return event.charCode>= 48 && event.charCode <=57"
+                                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('houseConstructionFee').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('houseConstructionFee').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('houseConstructionFee').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే గ్రుహ నిర్మాణం ఫీజు నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="houseConstructionFee" class="form-control" value="{{taxPayment.houseConstructionFee}}" disabled
+                                        />
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>10</td>
+                                    <td>దాఖాల ఫీజు</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="dakhalaFee" name="dakhalaFee" #dakhalaFee (change)="updateTotalTax()"
+                                            onkeypress="return event.charCode>= 48 && event.charCode<=57" minlength="1" maxlength="10"
+                                            [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('dakhalaFee').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('dakhalaFee').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('dakhalaFee').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే దాఖాల ఫీజు నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="dakhalaFee" class="form-control" value="{{taxPayment.dakhalaFee}}" disabled />
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>11</td>
+                                    <td>బందెల దొడ్డి</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="bandhelaDoddi" name="bandhelaDoddi" #bandhelaDoddi (change)="updateTotalTax()"
+                                            onkeypress="return event.charCode>= 48 && event.charCode <=57" minlength="1" maxlength="10"
+                                            [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('bandhelaDoddi').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('bandhelaDoddi').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('bandhelaDoddi').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే బందెల దొడ్డి నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="bandhelaDoddi" class="form-control" value="{{taxPayment.bandhelaDoddi}}" disabled />
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>12</td>
+                                    <td>భవనముల అద్దెలు</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="buildingRents" #buildingRents (change)="updateTotalTax()" name="buildingRents"
+                                            onkeypress="return event.charCode>= 48 && event.charCode<=57" minlength="1" maxlength="10"
+                                            [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('buildingRents').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('buildingRents').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('buildingRents').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే భవనముల అద్దెలు నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="buildingRents" class="form-control" value="{{taxPayment.buildingRents}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>13</td>
+                                    <td>ఇతర పన్ను</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" class="form-control" formControlName="otherValue" #otherValue (change)="updateTotalTax()" onkeypress="return event.charCode>= 48 && event.charCode<=57"
+                                            minlength="1" maxlength="10" [ngClass]="{ 'is-invalid': isPaySubmitted && taxPaymentForm.get('otherValue').hasError('required')}"
+                                        />
+                                        <div *ngIf="isPaySubmitted && taxPaymentForm.get('otherValue').hasError('required')" class="invalid-feedback">
+                                            <div *ngIf="taxPaymentForm.get('otherValue').hasError('required')">
+                                                దయచేసి చెల్లుబాటు అయ్యే ఇతర పన్ను నమోదు చేయండి</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="otherValue" class="form-control" value="{{taxPayment.otherValue}}" disabled />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>మొత్తం పన్ను</td>
+                                    <td *ngIf="partialPayment">
+                                        <input type="text" name="tatalTax" value="{{totalTaxAmt}}" class="form-control" disabled />
+                                    </td>
+                                    <td>
+                                        <input type="text" name="tatalTax" class="form-control" value="{{taxPayment.totalTax}}" disabled />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-secondary notranslate" data-dismiss="modal">Close</button>
+                    <button type=submit id="payTaxService" class="btn btn-primary notranslate">Pay Tax</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- END paymentModel -->
+
+<!-- Response Modal-->
+<div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div *ngIf="paymentResp" class="modal-content">
+            <div *ngIf="paymentCode == 200; else elseBlock" class="modal-body table-responsive text-success">
+                {{paymentResp}}
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-secondary notranslate" (click)="openPrint()">Close</button>
+                </div>
+            </div>
+            <ng-template #elseBlock>
+                <div class="modal-body table-responsive text-danger">
+                    {{paymentResp}}
+                </div>
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-secondary notranslate" data-dismiss="modal">Close</button>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</div>
+<!-- End Response Modal-->
+
+
+<!-- Print Receiept -->
+<!-- Modal*ngIf="transactionPrint" -->
+<div *ngIf="transactionPrint" class=" col-md-3 no-print">
+    <div *ngIf="paymentResp" [ngClass]="(paymentCode == 200)? 'text-success' : 'text-danger'">
+        <div *ngIf="paymentCode == 200">
+            <b> {{paymentResp}}</b>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block" data-toggle="modal" data-target="#printModel">Print</button>
+</div>
+
+<div *ngIf="transactionPrint" class="modal fade smallfont" id="printModel" tabindex="-1" role="dialog" aria-labelledby="printModel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body table-responsive">
+                <br>
+                <div class="col-12 text-center">
+                    గ్రామ పంచాయతీ కార్యలయము,నూత్ పల్లి
+                    <br> మం. నందిపేట్‌, జిల్లా. నిజామాబాద్‌
+                    <br>
+                    <span class="notranslate"> రశీదు </span>
+                    <hr>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 notranslate">
+                        నెం : {{transactionPrint.tranID}}
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        తేదీ : {{transactionPrint.data}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        శ్రీమతి/ శ్రీ : {{houseInfo.ownerName}}
+                    </div>
+
+                    <div class="col-sm-6 .text-dark text-right">
+                        తండ్రి/భర్త : {{houseInfo.fatherOrHusband}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        ఇంటినెం : {{houseInfo.houseNumber}}
+                    </div>
+                    <div class="col-sm-4 text-center">
+                        కుళాయి నెం</div>
+                    <div class="col-sm-4 text-right">
+                        సం|| : {{transactionPrint.taxYear}}
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <td>s.no</td>
+                            <td>పన్ను వివరాలు</td>
+                            <td>గత బకాయిలు</td>
+                            <td> ప్రస్తుత పన్ను</td>
+                            <td> మొత్తం</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>ఇంటి పన్ను</td>
+                            <td> {{dueTax.houseTax}} </td>
+                            <td>{{currentTax.houseTax}}</td>
+                            <td>{{dueTax.houseTax+currentTax.houseTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>గ్రంథాలయపు పన్ను</td>
+                            <td> {{dueTax.libraryTax}} </td>
+                            <td>{{currentTax.libraryTax}}</td>
+                            <td>{{dueTax.libraryTax+currentTax.libraryTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>లైటు పన్ను</td>
+                            <td>{{dueTax.lightTax}}</td>
+                            <td>{{currentTax.lightTax}}</td>
+                            <td>{{dueTax.lightTax+currentTax.lightTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>డ్రైనేజీ పన్ను</td>
+                            <td>{{dueTax.drainageTax}}</td>
+                            <td>{{currentTax.drainageTax}}</td>
+                            <td>{{dueTax.drainageTax + currentTax.drainageTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>నీటి పన్ను</td>
+                            <td>{{dueTax.waterTax}}</td>
+                            <td>{{currentTax.waterTax}}</td>
+                            <td>{{dueTax.waterTax+currentTax.waterTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>కుళాయి నెలవారీ ఫీజు</td>
+                            <td>{{dueTax.kulaiNelaVariFee}}</td>
+                            <td>{{currentTax.kulaiNelaVariFee}}</td>
+                            <td>{{dueTax.kulaiNelaVariFee + currentTax.kulaiNelaVariFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>కుళాయి డిపాజిట్</td>
+                            <td>{{dueTax.kulaiDeposit}}</td>
+                            <td>{{currentTax.kulaiDeposit}}</td>
+                            <td>{{dueTax.kulaiDeposit + currentTax.kulaiDeposit}}</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>లైసెన్స్ ఫీజు</td>
+                            <td>{{dueTax.licenseFee}}</td>
+                            <td>{{currentTax.licenseFee}}</td>
+                            <td>{{dueTax.licenseFee + currentTax.licenseFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td>గ్రుహ నిర్మాణం ఫీజు</td>
+                            <td>{{dueTax.houseConstructionFee}}</td>
+                            <td>{{currentTax.houseConstructionFee}}</td>
+                            <td>{{dueTax.houseConstructionFee + currentTax.houseConstructionFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>దాఖాల ఫీజు</td>
+                            <td>{{dueTax.dakhalaFee}}</td>
+                            <td>{{currentTax.dakhalaFee}}</td>
+                            <td>{{dueTax.dakhalaFee + currentTax.dakhalaFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td>బందెల దొడ్డ</td>
+                            <td>{{dueTax.bandhelaDoddi}}</td>
+                            <td>{{currentTax.bandhelaDoddi}}</td>
+                            <td>{{dueTax.bandhelaDoddi + currentTax.bandhelaDoddi}}</td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td>భవనముల అద్దెలు</td>
+                            <td>{{dueTax.buildingRents}}</td>
+                            <td>{{currentTax.buildingRents}}</td>
+                            <td>{{dueTax.buildingRents + currentTax.buildingRents}}</td>
+                        </tr>
+                        <tr>
+                            <td>13</td>
+                            <td>ఇతరములు</td>
+                            <td>{{dueTax.otherValue}}</td>
+                            <td>{{currentTax.otherValue}}</td>
+                            <td>{{dueTax.otherValue + currentTax.otherValue}}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>మొత్తం పన్ను</td>
+                            <td>{{dueTax.totalTax}}</td>
+                            <td>{{currentTax.totalTax}}</td>
+                            <td>{{dueTax.totalTax + currentTax.totalTax}}</td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td>కారోబారి &amp; బిల్ కలెక్టర్/క్లెర్క్</td>
+                            <td style="padding-left: 200px;">సర్పంఛ్/కార్యదర్శి </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <!--data-dismiss="modal"-->
+                <button type="button" class="btn btn-secondary notranslate" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary notranslate" onclick="window.print()">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Print Receiept-->

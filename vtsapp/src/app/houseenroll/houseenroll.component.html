@@ -1,0 +1,67 @@
+<app-header></app-header>
+<div id="container no-print" style="margin-top: 70px;">
+    <div class="container-fluid">
+        <div class="form-horizontal border border-light p-3 col-md-4 needs-validation">
+
+            <form id="houseEnrollForm" [formGroup]="houseEnrollForm" (ngSubmit)="enroll()">
+                <div class="form-group">
+                    <h3 class="text-center text-info">ఇంటిని నమోదు చేయండి </h3>
+                </div>
+                <div class="form-group">
+                    <label>
+                        ఇంటి సంఖ్య:</label>
+                    <br>
+                    <input type="text" class="form-control" id="houseNumber" formControlName="houseNumber" [ngClass]="{ 'is-invalid': isSubmitted && houseEnrollForm.get('houseNumber').hasError('required')}" />
+                    <div *ngIf="isSubmitted && houseEnrollForm.get('houseNumber').hasError('required')" class="help-block">
+                        <div class="text-danger">దయచేసి ఇంటి సంఖ్యను నమోదు చేయండి</div>
+                    </div>
+                    <div class="text-danger" *ngIf="(isSubmitted && houseEnrollForm.get('houseNumber').hasError('minlength')) || isSubmitted && houseEnrollForm.get('houseNumber').hasError('maxlength')">
+                        ఇంటి సంఖ్య 1 కంటే ఎక్కువ ఉండాలి మరియు 10 అంకెలు మించకూడదు
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ownerName">యజమాని పేరు:</label>
+                    <br>
+                    <input type="text" class="form-control" id="ownerName" formControlName="ownerName" [ngClass]="{ 'is-invalid': isSubmitted && houseEnrollForm.get('ownerName').hasError('required')}"
+                    />
+                    <div *ngIf="isSubmitted && houseEnrollForm.get('ownerName').hasError('required')" class="help-block">
+                        <div class="text-danger">దయచేసి యజమాని పేరును నమోదు చేయండి</div>
+                    </div>
+                    <div class="text-danger" *ngIf="(isSubmitted && houseEnrollForm.get('ownerName').hasError('minlength')) || isSubmitted && houseEnrollForm.get('ownerName').hasError('maxlength')">
+                        యజమాని పేరు 1 అక్షరం కంటే ఎక్కువగా ఉండాలి మరియు 30 అక్షరాల కంటే ఎక్కువ ఉండకూడదు
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fhName">తండ్రి లేదా భర్త:</label>
+                    <br>
+                    <input type="text" class="form-control" id="fhName" formControlName="fhName" [ngClass]="{ 'is-invalid': isSubmitted && houseEnrollForm.get('fhName').hasError('required')}"
+                    />
+                    <div *ngIf="isSubmitted && houseEnrollForm.get('fhName').hasError('required')">
+                        <div class="text-danger">దయచేసి తండ్రి లేదా భర్తను నమోదు చేయండి</div>
+                    </div>
+                    <div class="text-danger" *ngIf="(isSubmitted && houseEnrollForm.get('fhName').hasError('minlength')) || isSubmitted && houseEnrollForm.get('fhName').hasError('maxlength')">
+                        తండ్రి లేదా భర్త 1 అక్షరం కంటే ఎక్కువగా ఉండాలి మరియు 30 అక్షరాల కంటే ఎక్కువ ఉండకూడదు
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mobileNumber">మొబైల్ సంఖ్య:</label>
+                    <br>
+                    <input type="text" class="form-control" id="mobileNumber" formControlName="mobileNumber" [ngClass]="{ 'is-invalid': isSubmitted && houseEnrollForm.get('mobileNumber').hasError('required') }"
+                    />
+                    <div *ngIf="isSubmitted && houseEnrollForm.get('mobileNumber').hasError('required')" class="help-block">
+                        <div class="text-danger">దయచేసి మొబైల్ నంబర్‌ను నమోదు చేయండి</div>
+                    </div>
+                    <div class="text-danger" *ngIf="(isSubmitted && houseEnrollForm.get('mobileNumber').hasError('minlength')) || isSubmitted && houseEnrollForm.get('mobileNumber').hasError('maxlength')">
+                        మొబైల్ సంఖ్య 1 అంకె కంటే ఎక్కువ 10 అంకెలు మించకూడదు
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">నమోదు చేయండి</button>
+            </form>
+            <div>
+                <div *ngIf="enrollResponse" style="margin-top: 15px;" [ngClass]="(successClass == true ) ? 'text-success' : 'text-danger'">
+                    {{enrollResponse}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

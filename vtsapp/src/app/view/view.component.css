@@ -1,0 +1,17 @@
+@media print {
+	.no-print, .no-print * {
+		display: none !important;
+	}
+}
+
+.smallfont {
+    font-size: 0.7em;
+}
+
+
+
+::ng-deep
+.cdk-overlay-container{
+	position: absolute !important;
+	z-index: 10000 !important;
+}

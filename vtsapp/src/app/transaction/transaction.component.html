@@ -1,0 +1,241 @@
+<app-header></app-header>
+<div id="container" class="no-print" style="margin-top: 85px;">
+    <div class="container-fluid">
+        <div>
+            <h3>
+                <label class="text-info no-print">
+                    <span>{{houseNumber}} పన్ను చెల్లింపు వివరాలు</span>
+                </label>
+            </h3>
+        </div>
+        <div>
+                <span>{{cancelationMsg}}</span>
+        </div>
+        <div style="margin-top:20px;">
+            <div>
+                <table id="dtBasicExample" class="table smallfont table-bordered table-responsive table-striped table-sm no-print">
+                    <thead>
+                        <tr >
+                            <!--style=" font-size: 20px;"-->
+                            <th>ఇంటి పన్ను</th>
+                            <th>గ్రంథాలయపు పన్నూ</th>
+                            <th>లైటు పన్నూ</th>
+                            <th>డ్రైనేజీ పన్నూ</th>
+                            <th>నీటి పన్ను</th>
+                            <th>కుళాయి నెలవారీ ఫీజు</th>
+                            <th>కుళాయి డిపాజిట్</th>
+                            <th>లైసెన్స్ ఫీజు</th>
+                            <th>గ్రుహ నిర్మాణం ఫీజు</th>
+                            <th>దాఖాల ఫీజు</th>
+                            <th>బందెల దొడ్డి</th>
+                            <th>భవనముల అద్దెలు</th>
+                            <th>ఇతరములు</th>
+                            <th>మొత్తం పన్ను</th>
+                            <th>పన్ను సంవత్సరం</th>
+                            <th>పన్ను స్థితి</th>
+                            <th>చర్య</th>
+                            <th>చర్య</th>
+                        </tr>
+                    </thead>
+                    <tbody *ngFor="let transaction of tranList">
+                        <tr *ngIf="transaction">
+                            <td class="align-middle" hidden>{{transaction.tranID}}</td>
+                            <td class="align-middle">{{transaction.houseTax}}</td>
+                            <td class="align-middle">{{transaction.libraryTax}}</td>
+                            <td class="align-middle">{{transaction.lightTax}}</td>
+                            <td class="align-middle">{{transaction.drainageTax}}</td>
+                            <td class="align-middle">{{transaction.waterTax}}</td>
+                            <td class="align-middle">{{transaction.kulaiNelaVariFee}}</td>
+                            <td class="align-middle">{{transaction.kulaiDeposit}}</td>
+                            <td class="align-middle">{{transaction.licenseFee}}</td>
+                            <td class="align-middle">{{transaction.houseConstructionFee}}</td>
+                            <td class="align-middle">{{transaction.dakhalaFee}}</td>
+                            <td class="align-middle">{{transaction.bandhelaDoddi}}</td>
+                            <td class="align-middle">{{transaction.buildingRents}}</td>
+                            <td class="align-middle" hidden>{{transaction.othersKey}}</td>
+                            <td class="align-middle">{{transaction.otherValue}}</td>
+                            <td class="align-middle">{{transaction.totalTax}}</td>
+                            <td class="align-middle">{{transaction.taxYear}}</td>
+                            <td class="align-middle text-success">{{transaction.taxStatus}}</td>
+                            <td class="row" style="margin-left:5px;margin-right:5px;" *ngIf="transaction.taxStatus == 'SUCCESS'">
+                                <Button type="submit" name="taxPayment" class="btn btn-primary" (click)="printModel(transaction.tranID)">Print</Button>
+                            </td>
+                            <td *ngIf="transaction.taxStatus == 'SUCCESS'">
+                                <Button type="submit" class="btn btn-primary" (click)="cancelTran(transaction.tranID)">Cancel</Button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Print transaction -->
+<div class="modal fade smallfont" id="printModel" tabindex="-1" role="dialog" aria-labelledby="printModel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" *ngIf="transactionPrint">
+            <div class="modal-body table-responsive">
+                <br>
+                <div class="col-12 text-center">
+                    గ్రామ పంచాయతీ కార్యలయము,నూత్ పల్లి
+                    <br> మం. నందిపేట్‌, జిల్లా. నిజామాబాద్‌
+                    <br>
+                    <span class="notranslate"> రశీదు </span>
+                    <hr>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 text-left">
+                        నెం : {{transactionPrint.tranID}}
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        తేదీ : {{transactionPrint.data}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        శ్రీమతి/ శ్రీ : {{houseInfo.ownerName}}
+                    </div>
+
+                    <div class="col-sm-6 .text-dark text-right">
+                        తండ్రి/భర్త : {{houseInfo.fatherOrHusband}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        ఇంటినెం : {{houseInfo.houseNumber}}
+                    </div>
+                    <div class="col-sm-4 text-center">
+                        కుళాయి నెం</div>
+                    <div class="col-sm-4 text-right">
+                        సం|| : {{transactionPrint.taxYear}}
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <td>s.no</td>
+                            <td>పన్ను వివరాలు</td>
+                            <td>గత బకాయిలు</td>
+                            <td> ప్రస్తుత పన్ను</td>
+                            <td> మొత్తం</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>ఇంటి పన్ను</td>
+                            <td>{{dueTax.houseTax}} </td>
+                            <td>{{currentTax.houseTax}}</td>
+                            <td>{{dueTax.houseTax+currentTax.houseTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>గ్రంథాలయపు పన్ను</td>
+                            <td>{{dueTax.libraryTax}} </td>
+                            <td>{{currentTax.libraryTax}}</td>
+                            <td>{{dueTax.libraryTax+currentTax.libraryTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>లైటు పన్ను</td>
+                            <td>{{dueTax.lightTax}}</td>
+                            <td>{{currentTax.lightTax}}</td>
+                            <td>{{dueTax.lightTax+currentTax.lightTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>డ్రైనేజీ పన్ను</td>
+                            <td>{{dueTax.drainageTax}}</td>
+                            <td>{{currentTax.drainageTax}}</td>
+                            <td>{{dueTax.drainageTax + currentTax.drainageTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>నీటి పన్ను</td>
+                            <td>{{dueTax.waterTax}}</td>
+                            <td>{{currentTax.waterTax}}</td>
+                            <td>{{dueTax.waterTax+currentTax.waterTax}}</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>కుళాయి నెలవారీ ఫీజు</td>
+                            <td>{{dueTax.kulaiNelaVariFee}}</td>
+                            <td>{{currentTax.kulaiNelaVariFee}}</td>
+                            <td>{{dueTax.kulaiNelaVariFee + currentTax.kulaiNelaVariFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>కుళాయి డిపాజిట్</td>
+                            <td>{{dueTax.kulaiDeposit}}</td>
+                            <td>{{currentTax.kulaiDeposit}}</td>
+                            <td>{{dueTax.kulaiDeposit + currentTax.kulaiDeposit}}</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>లైసెన్స్ ఫీజు</td>
+                            <td>{{dueTax.licenseFee}}</td>
+                            <td>{{currentTax.licenseFee}}</td>
+                            <td>{{dueTax.licenseFee + currentTax.licenseFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td>గ్రుహ నిర్మాణం ఫీజు</td>
+                            <td>{{dueTax.houseConstructionFee}}</td>
+                            <td>{{currentTax.houseConstructionFee}}</td>
+                            <td>{{dueTax.houseConstructionFee + currentTax.houseConstructionFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>దాఖాల ఫీజు</td>
+                            <td>{{dueTax.dakhalaFee}}</td>
+                            <td>{{currentTax.dakhalaFee}}</td>
+                            <td>{{dueTax.dakhalaFee + currentTax.dakhalaFee}}</td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td>బందెల దొడ్డ</td>
+                            <td>{{dueTax.bandhelaDoddi}}</td>
+                            <td>{{currentTax.bandhelaDoddi}}</td>
+                            <td>{{dueTax.bandhelaDoddi + currentTax.bandhelaDoddi}}</td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td>భవనముల అద్దెలు</td>
+                            <td>{{dueTax.buildingRents}}</td>
+                            <td>{{currentTax.buildingRents}}</td>
+                            <td>{{dueTax.buildingRents + currentTax.buildingRents}}</td>
+                        </tr>
+                        <tr>
+                            <td>13</td>
+                            <td>ఇతరములు</td>
+                            <td>{{dueTax.otherValue}}</td>
+                            <td>{{currentTax.otherValue}}</td>
+                            <td>{{dueTax.otherValue + currentTax.otherValue}}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>మొత్తం పన్ను</td>
+                            <td>{{dueTax.totalTax}}</td>
+                            <td>{{currentTax.totalTax}}</td>
+                            <td>{{dueTax.totalTax + currentTax.totalTax}}</td>
+                        </tr>
+                    </table>
+                    <br/>
+                    <table>
+                        <tr>
+                            <td>కారోబారి &amp; బిల్ కలెక్టర్/క్లెర్క్</td>
+                            <td style="padding-left: 200px;">సర్పంఛ్/కార్యదర్శి </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer no-print">
+                <!--data-dismiss="modal"-->
+                <button type="button" class="btn btn-secondary notranslate" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary notranslate" onclick="window.print()">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Print Receiept-->

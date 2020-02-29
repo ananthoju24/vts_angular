@@ -1,0 +1,88 @@
+<app-header></app-header>
+<div id="container"  style="margin-top: 85px;">
+    <div class="container-fluid">
+        <div class="row" >
+            <form class="form-horizontal no-print border border-light p-12 col-md-14 needs-validation" [formGroup]="auditForm" (ngSubmit)="audit()" novalidate>
+            <div id="datePickerMain" class="float-left">
+
+                    <div class="form-group">
+                        <label style="margin-left: 5px;margin-right: 5px;">తేదీ నుండి</label> 
+                        <mat-form-field>
+                            <input matInput [matDatepicker]="picker" [max]="today" [ngModel]="fromToday" formControlName="fromDate" class="form-control"
+                                [ngClass]="{'is-invalid': isAuditSubmitted && auditForm.get('fromDate').hasError('required')}">
+                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-datepicker #picker class="mat-input-underline"></mat-datepicker>
+                        </mat-form-field>
+                        <label style="margin-left: 5px;margin-right: 5px;">తేదీ వరకు</label>
+                        <mat-form-field>
+                            <input matInput [matDatepicker]="picker2" [max]="today" [ngModel]="toToday" formControlName="toDate" class="form-control"
+                                [ngClass]="{'is-invalid': isAuditSubmitted && auditForm.get('toDate').hasError('required')}">
+                            <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+                            <mat-datepicker #picker2 class="mat-input-underline"></mat-datepicker>
+                        </mat-form-field>
+                        <button style="margin-left: 5px;margin-right: 5px;" type=submit id="showAllTransactions" class="btn btn-primary notranslate">Show</button>
+                    </div>
+
+                </div>
+              
+            </form>
+
+
+
+            <div style="margin-top:20px;">
+                <div>
+                        <p hidden> Arun </p>
+                    <table id="dtBasicExample" class="table table-responsive table-bordered smallfont table-striped table-sm">
+                        <thead>
+                            <tr >
+                                <!--style=" font-size: 20px;"-->
+                                <th>ఇంటి సంఖ్య</th>
+                                <th>ఇంటి పన్ను</th>
+                                <th>గ్రంథాలయపు పన్నూ</th>
+                                <th>లైటు పన్నూ</th>
+                                <th>డ్రైనేజీ పన్నూ</th>
+                                <th>నీటి పన్ను</th>
+                                <th>కుళాయి నెలవారీ ఫీజు</th>
+                                <th>కుళాయి డిపాజిట్</th>
+                                <th>లైసెన్స్ ఫీజు</th>
+                                <th>గ్రుహ నిర్మాణం ఫీజు</th>
+                                <th>దాఖాల ఫీజు</th>
+                                <th>బందెల దొడ్డి</th>
+                                <th>భవనముల అద్దెలు</th>
+                                <th>ఇతరములు</th>
+                                <th>మొత్తం పన్ను</th>
+                                <th>పన్ను సంవత్సరం</th>
+                                <th>చెల్లింపు తేదీ</th>
+                                <th>పన్ను స్థితి</th>
+                            </tr>
+                        </thead>
+                        <tbody *ngFor="let transaction of transactionsList">
+                            <tr *ngIf="transaction">
+                                <td class="align-middle">{{transaction.houseNum}}</td>
+                                <td class="align-middle" hidden>{{transaction.tranID}}</td>
+                                <td class="align-middle">{{transaction.houseTax}}</td>
+                                <td class="align-middle">{{transaction.libraryTax}}</td>
+                                <td class="align-middle">{{transaction.lightTax}}</td>
+                                <td class="align-middle">{{transaction.drainageTax}}</td>
+                                <td class="align-middle">{{transaction.waterTax}}</td>
+                                <td class="align-middle">{{transaction.kulaiNelaVariFee}}</td>
+                                <td class="align-middle">{{transaction.kulaiDeposit}}</td>
+                                <td class="align-middle">{{transaction.licenseFee}}</td>
+                                <td class="align-middle">{{transaction.houseConstructionFee}}</td>
+                                <td class="align-middle">{{transaction.dakhalaFee}}</td>
+                                <td class="align-middle">{{transaction.bandhelaDoddi}}</td>
+                                <td class="align-middle">{{transaction.buildingRents}}</td>
+                                <td class="align-middle" hidden>{{transaction.othersKey}}</td>
+                                <td class="align-middle">{{transaction.otherValue}}</td>
+                                <td class="align-middle">{{transaction.totalTax}}</td>
+                                <td class="align-middle">{{transaction.taxYear}}</td>
+                                <td class="align-middle">{{transaction.tranDate}}</td>
+                                <td class="align-middle text-success">{{transaction.taxStatus}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<button *ngIf="showPrintOption == true" type="button" class="btn btn-primary notranslate no-print" onclick="window.print()">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>

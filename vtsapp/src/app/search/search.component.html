@@ -1,0 +1,90 @@
+<app-header></app-header>
+<div id="container no-print" style="margin-top: 85px;">
+    <div class="container-fluid">
+        <div>
+            <form class="form-horizontal" id="search" [formGroup]="searchForm" (ngSubmit)="search()" novalidate>
+                <div class="col-md-3">
+                    <label class="text-info">ఇంటి సంఖ్యను నమోదు చేయండి</label>
+                </div>
+                <div class="form-group">
+                    <br>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control col-sm" id="houseNum" formControlName="houseNum" [ngClass]="{ 'is-invalid': isSubmitted && formControls.houseNum.errors }">
+                        <div *ngIf="isSubmitted && searchForm.get('houseNum').hasError('required')" class="help-block">
+                            <div class="text-danger">Please enter house number</div>
+                        </div>
+                        <div class="text-danger" *ngIf="(isSubmitted && searchForm.get('houseNum').hasError('minlength')) || isSubmitted && searchForm.get('houseNum').hasError('maxlength')">
+                            ఇంటి సంఖ్య 1 కంటే ఎక్కువ ఉండాలి మరియు 10 అంకెలు మించకూడదు
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="text-danger">{{searchErrMsg}}</div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-md">వెతకండి</button>
+                </div>
+            </form>
+        </div>
+
+        <div *ngIf="showResult" id="serachresult" class="responsive row justify-content-center align-items-center">
+            <div class="col-md-6">
+                <table class="table table-responsive" noborder>
+                    <thead>
+                        <th>
+                            <h4>ఇంటి వివరాలు</h4>
+                        </th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="col-sm-6">
+                                <h5>ఇంటి సంఖ్య</h5>
+                            </td>
+                            <td class="col-sm-6">
+                                <h5>
+                                    <b>{{hoBean.houseNumber}}</b>
+                                </h5>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-sm-6">
+                                <h5>యజమాని పేరు</h5>
+                            </td>
+                            <td class="col-sm-6">
+                                <h5>
+                                    <b>
+                                        {{hoBean.ownerName}}
+                                    </b>
+                                </h5>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-sm-6">
+                                <h5>మొబైల్ సంఖ్య</h5>
+                            </td>
+                            <td class="col-sm-6">
+                                <h5>
+                                    <b>
+                                        {{hoBean.mobileNumber}}
+                                    </b>
+                                </h5>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group col-sm-4">
+                    <!-- [routerLink]="['/viewtax', hoBean.houseNumber]"<form action="/viewTax" method="GET"> input type="text" value="{{hoBean.houseNumber}}" id="houseNumber" name="houseNumber" hidden />-->
+                    <form class="form-horizontal" id="search" [formGroup]="searchForm" (ngSubmit)="viewTax()" novalidate>
+                        <input type="hidden" id="houseNum" formControlName="houseNum" value="{{hoBean.houseNumber}}" />
+                        <button class="btn btn-primary">View Tax</button>
+                    </form>
+                </div>
+                <div class="form-group col-sm-4" hidden>
+                    <button class="btn btn-primary" (click)="viewTransaction()">Transactions </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
